@@ -4,12 +4,24 @@ use std::{
 };
 
 fn handle_client(mut stream: TcpStream) -> Result<(), Box<dyn std::error::Error>> {
-    let mut buf: [u8; 255] = [0; 255];
+    let mut buf: [u8; 255] = [0x00; 255];
 
-    while stream.read(&mut buf)? > 0 {
-        stream.write(&buf)?;
+    loop {
+        let res = stream.read(&mut buf);
+        match res {
+            Ok(n) => {
+                if n == 0 {
+                    return Ok(());
+                }
+                if buf[n - 1] == 0 {
+                    stream.write(&[0]).unwrap();
+                }
+            }
+            Err(err) => {
+                panic!("{}", err);
+            }
+        }
     }
-    Ok(())
 }
 
 fn main() -> std::io::Result<()> {
