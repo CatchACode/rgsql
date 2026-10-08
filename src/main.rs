@@ -2,6 +2,7 @@ use std::{
     io::{Read, Write},
     net::{TcpListener, TcpStream},
 };
+mod parser;
 
 fn handle_client(mut stream: TcpStream) -> Result<(), Box<dyn std::error::Error>> {
     let mut buf: [u8; 255] = [0x00; 255];
