@@ -134,7 +134,7 @@ fn expect_select_item(tokens: &[&str], pos: usize) -> (SelectItem, usize) {
             return (
                 SelectItem {
                     value: item,
-                    name: tokens[pos + 2].to_string(),
+                    name: tokens[pos + 1].to_string(),
                 },
                 pos + 3,
             );
@@ -183,7 +183,7 @@ fn expect_select_items(tokens: &[&str], mut pos: usize) -> (Vec<SelectItem>, usi
 }
 
 fn expect_select(tokens: &[&str], mut pos: usize) -> (SelectClause, usize) {
-    let mut select_items: Vec<SelectItem> = Vec::new();
+    let select_items: Vec<SelectItem>;
     (select_items, pos) = expect_select_items(tokens, pos);
     let mut select_clause = SelectClause {
         items: select_items,
@@ -192,7 +192,8 @@ fn expect_select(tokens: &[&str], mut pos: usize) -> (SelectClause, usize) {
         join: None,
     };
     if (pos < tokens.len()) && (tokens[pos].to_lowercase().as_str() == "from") {
-        let (from_clause, pos) = expect_from(tokens, pos);
+        let from_clause: FromClause;
+        (from_clause, pos) = expect_from(tokens, pos);
         select_clause.from = Some(from_clause);
     }
     if (pos < tokens.len()) && (tokens[pos].to_lowercase().as_str() == "where") {
@@ -258,7 +259,16 @@ mod tests {
         });
 
         let expected_statement_3: Statement = Statement::Select(SelectClause {
-            items: vec![],
+            items: vec![
+                SelectItem {
+                    name: "a".to_string(),
+                    value: SelectItemValue::Integer { value: 4 },
+                },
+                SelectItem {
+                    name: "b".to_string(),
+                    value: SelectItemValue::Boolean { value: false },
+                },
+            ],
             from: None,
             group_by: None,
             join: None,
@@ -269,7 +279,12 @@ mod tests {
             .into_iter()
             .nth(0)
             .unwrap();
+        let actual_statement_3: Statement = parse(&"SELECT 4 AS a, FALSE AS b;".to_string())
+            .into_iter()
+            .nth(0)
+            .unwrap();
         assert_eq!(expected_statement_1, actual_statement_1);
         assert_eq!(expected_statement_2, actual_statement_2);
+        assert_eq!(expected_statement_3, actual_statement_3);
     }
 }
